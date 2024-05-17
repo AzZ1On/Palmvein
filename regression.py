@@ -70,19 +70,22 @@ class HandAngleRegressor(nn.Module):
 
 # Инициализация модели, функции потерь и оптимизатора
 model = HandAngleRegressor()
-criterion = nn.MSELoss()
+criterion = nn.L1Loss()  # Использование MAE (Mean Absolute Error)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Обучение модели
 num_epochs = 10
 for epoch in range(num_epochs):
+    total_loss = 0
     for images, angles in train_loader:
         optimizer.zero_grad()
         outputs = model(images.float())  # Приведение к типу Float
         loss = criterion(outputs.squeeze(), angles.float())  # Приведение к типу Float
         loss.backward()
         optimizer.step()
-    print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")
+        total_loss += loss.item() * images.size(0)
+    mean_loss = total_loss / len(train_loader.dataset)
+    print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {mean_loss:.4f}")
 
 # Оценка модели на тестовом наборе данных
 model.eval()
@@ -94,7 +97,7 @@ with torch.no_grad():
         total_loss += loss.item() * images.size(0)
 
 mean_loss = total_loss / len(test_loader.dataset)
-print(f"Mean Squared Error on test images: {mean_loss:.4f}")
+print(f"Mean Absolute Error on test images: {mean_loss:.4f}")
 
 # Оценка модели на новом тестовом наборе данных test_hard
 model.eval()
@@ -106,5 +109,18 @@ with torch.no_grad():
         total_loss_hard += loss_hard.item() * images_hard.size(0)
 
 mean_loss_hard = total_loss_hard / len(test_hard_loader.dataset)
-print(f"Mean Squared Error on hard test images: {mean_loss_hard:.4f}")
+print(f"Mean Absolute Error on hard test images: {mean_loss_hard:.4f}")
 
+# PS C:\Users\youss\OneDrive\Документы\GitHub\Palmvein> & C:/Users/youss/AppData/Local/Programs/Python/Python312/python.exe c:/Users/youss/OneDrive/Документы/GitHub/Palmvein/regression.py
+# Epoch [1/10], Loss: 28.9238
+# Epoch [2/10], Loss: 6.8257
+# Epoch [3/10], Loss: 6.1452
+# Epoch [4/10], Loss: 5.4594
+# Epoch [5/10], Loss: 3.9266
+# Epoch [6/10], Loss: 3.5086
+# Epoch [7/10], Loss: 4.5958
+# Epoch [8/10], Loss: 3.1887
+# Epoch [9/10], Loss: 5.1954
+# Epoch [10/10], Loss: 2.9482
+# Mean Absolute Error on test images: 2.5967
+# Mean Absolute Error on hard test images: 46.0138
